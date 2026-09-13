@@ -10,10 +10,10 @@ class CategoriaController:
             return []
 
         try:
-            cursor = conexion.cursor()
-            cursor.execute("SELECT * FROM tblcategoria_prod")
-            resultados = cursor.fetchall()
-            return resultados
+            with conexion:
+                with conexion.cursor() as cursor:
+                    cursor.execute("SELECT * FROM tblcategoria_prod")
+                    return cursor.fetchall()
         except Exception as e:
             print(f"Error al listar categorías: {e}")
             return []
@@ -27,13 +27,13 @@ class CategoriaController:
             return []
 
         try:
-            cursor = conexion.cursor()
-            cursor.execute(
-                "SELECT * FROM tblcategoria_prod WHERE strdescripcion ILIKE %s",
-                (f"%{texto}%",),
-            )
-            resultados = cursor.fetchall()
-            return resultados
+            with conexion:
+                with conexion.cursor() as cursor:
+                    cursor.execute(
+                        "SELECT * FROM tblcategoria_prod WHERE strdescripcion ILIKE %s",
+                        (f"%{texto}%",),
+                    )
+                    return cursor.fetchall()
         except Exception as e:
             print(f"Error al buscar categoría: {e}")
             return []
@@ -47,16 +47,19 @@ class CategoriaController:
             return False
 
         try:
-            cursor = conexion.cursor()
-            cursor.execute(
-                "CALL actualizar_categoriaprod(%s, %s, %s)",
-                (None, descripcion, usuario),
-            )
-            conexion.commit()
+            with conexion:
+                with conexion.cursor() as cursor:
+                    cursor.execute(
+                        """
+                        INSERT INTO tblcategoria_prod
+                            (strdescripcion, dtmfechamodifica, strusuariomodifico)
+                        VALUES (%s, now(), %s)
+                        """,
+                        (descripcion, usuario),
+                    )
             return True
         except Exception as e:
             print(f"Error al crear categoría: {e}")
-            conexion.rollback()
             return False
         finally:
             conexion.close()
@@ -68,16 +71,15 @@ class CategoriaController:
             return False
 
         try:
-            cursor = conexion.cursor()
-            cursor.execute(
-                "CALL actualizar_categoriaprod(%s, %s, %s)",
-                (id_categoria, descripcion, usuario),
-            )
-            conexion.commit()
+            with conexion:
+                with conexion.cursor() as cursor:
+                    cursor.execute(
+                        "CALL actualizar_categoriaprod(%s, %s, now(), %s)",
+                        (id_categoria, descripcion, usuario),
+                    )
             return True
         except Exception as e:
             print(f"Error al actualizar categoría: {e}")
-            conexion.rollback()
             return False
         finally:
             conexion.close()
@@ -89,16 +91,15 @@ class CategoriaController:
             return False
 
         try:
-            cursor = conexion.cursor()
-            cursor.execute(
-                "CALL eliminar_categoriaproducto(%s)",
-                (id_categoria,),
-            )
-            conexion.commit()
+            with conexion:
+                with conexion.cursor() as cursor:
+                    cursor.execute(
+                        "CALL eliminar_categoriaproducto(%s)",
+                        (id_categoria,),
+                    )
             return True
         except Exception as e:
             print(f"Error al eliminar categoría: {e}")
-            conexion.rollback()
             return False
         finally:
             conexion.close()
