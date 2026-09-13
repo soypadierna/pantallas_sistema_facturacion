@@ -19,4 +19,3 @@ def get_connection():
     except OperationalError as e:
         print(f"Error al conectar a la base de datos: {e}")
         return None
-    
